@@ -1,17 +1,22 @@
+import { cleanup } from '@testing-library/react';
 import React, { useState, useEffect } from 'react';
+import ChatAPI from 'react';
 
-function Hook() {
-  const [count, setCount] = useState(0);
+function Hook(props) {
+  const [isOnline, setIsOnline] = useState(null);
   useEffect(() => {
-    document.title= `You clicket at button ${count} times`;
+      function handleStatusChange(status) {
+          setIsOnline(status.isOnline);
+      }
+      ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange); 
+      return function cleanup() {
+        ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+      };
   });
-  return (
-      <div>
-        <p>You clicked {count} times</p>
-        <button onClick={() => setCount(count + 1)}>
-          Click me
-        </button>
-      </div>
-    );
+
+  if (isOnline == null) {
+      return 'Loading...';
+  }
+  return isOnline ? 'Online' : 'Offline';
 }
 export default Hook;
